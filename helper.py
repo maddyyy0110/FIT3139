@@ -1,6 +1,7 @@
 from functools import cache
 from math import comb as binomial
 import numpy as np
+from scipy.special import bernoulli
 
 # Code sourced The online integer encyclopedia:
 # https://oeis.org/search?q=0%2C1%2C0%2C2%2C0%2C16%2C0%2C272&language=english&go=Search
@@ -18,8 +19,6 @@ def A350972(n):
     return -t if t < 0 else t
 # Peter Luschny, Jun 06 2022
 
-for i in range(10):
-    print(ptan(i))
 
 def bisection(a_function,a,b,tol,max_iter = 1000):
     """Bisection Root finding method, Created by 2024 FIT3139 TA's
@@ -65,3 +64,29 @@ def relError(actual,expected):
     # Compute relative error between two values
     return np.abs((actual - expected)/actual)*100\
     
+
+def zagNumsGenerator(n):
+    """Function to generate the "tangent zag numbers"
+    i.e. 1,2,16,272...
+
+    Note that imprecision is introduced by fractional Bernoulli numbers
+
+    Args:
+        n (int): number of terms to be generated
+
+    Returns:
+        List: Contains n terms of the tangent zag sequence
+    """
+    zag = []
+
+    # use scipy library to generate 2*n terms of bernoulli sequence
+    bernTerms = bernoulli(2*n)
+
+    # iterate over n, adding each term according to formula from this website:
+    # https://mathworld.wolfram.com/TangentNumber.html
+    
+    for n in range(1,n+1):
+        curr = (2**(2*n) * (2**(2*n) - 1) * abs(bernTerms[2*n]))/(2*n)
+        zag.append(curr)
+    return zag
+

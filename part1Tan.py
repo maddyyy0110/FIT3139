@@ -1,7 +1,7 @@
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-from helper import A350972, bisection, relError
+from helper import zagNumsGenerator, bisection, relError
 
 
 
@@ -11,27 +11,29 @@ from helper import A350972, bisection, relError
 def tanTaylor(point,terms):
     sum = 0
 
+    zagNums = zagNumsGenerator(terms)
+
     for i in range(terms):  
-        coeff = A350972(i)
-        sum += coeff / math.factorial(i) * point**i
+        coeff = zagNums[i]
+        sum += coeff / math.factorial(2*(i+1)-1) * point**(2*(i+1)-1)
 
     return sum
 
 # Code to create graph for 1.1 tan(x)
 
 # Using template code from 2024 FIT3139 Applied 1:
-# x = np.linspace(-1.5,1.5,100)
-# y = [math.tan(val) for val in x]
+x = np.linspace(-1.5,1.5,100)
+y = [math.tan(val) for val in x]
 
-# plt.plot(x,y,label = "True")
+plt.plot(x,y,label = "True")
 
-# for terms in [1,10,50]:
-#     y_approx = [tanTaylor(val, terms) for val in x]
-#     plt.plot(x,y_approx, label = f"{terms} terms")
+for terms in [1,10,50]:
+    y_approx = [tanTaylor(val, terms) for val in x]
+    plt.plot(x,y_approx, label = f"{terms} terms")
 
-# plt.legend()
-# plt.title("Taylor series approx of tan(x)")
-# plt.show()
+plt.legend()
+plt.title("Taylor series approx of tan(x)")
+plt.show()
 
 
 
