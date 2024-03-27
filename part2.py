@@ -2,7 +2,7 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 
-
+# Create true value of cos(2*pi*x)
 x = np.linspace(0,10,500)
 y = [math.cos(2 * np.pi * val) for val in x]
 
@@ -13,6 +13,7 @@ i = 0
 colour = ["royalblue",'firebrick']
 precision = 1
 
+# Loop over different precisions and add to subplot
 for precision in [1,3]:
     y_approx = [math.cos(2 * round(np.pi,precision) * val)  - math.cos(2 * np.pi * val) for val in x]
     axes[i].plot(x,y_approx, label = f"{precision} sig fig(s)", color = colour[i])

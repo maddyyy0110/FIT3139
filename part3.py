@@ -2,24 +2,53 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 
-def backwardsError(x):
-    yhat = math.cos(2*math.pi*x)
-    xhat = math.acos(yhat)/(2*math.pi)
-    return abs(xhat - x)
 
-def findSens(forwards, backwards,x,y):
-    sens = (forwards/y)/(backwards/x)
+def findCN(forwards, backwards,y,x):
+    """Calculate Condition number of a function and its approximation
+
+    Args:
+        forwards (float): Forwards error
+        backwards (float): Backwards error
+        y (float): y value respective to error
+        x (float): x value respective to error
+
+    Returns:
+        float: Condition number
+    """
+    sens = abs(forwards/y)/abs(backwards/x)
     return sens
 
 
-#cosApprox = lambda x: 1 - 2 * math.pi**2 * x**2
 
-x = np.linspace(0,2,100)
+# CN from forwards and backwards error
+
+CNs = []
+
+x = np.linspace(-5,5,100)
+y = [math.cos(2*math.pi*val) for val in x]
+
+for i in range(len(x)):
+    forwards = abs(1 - math.cos(2*math.pi*x[i]))
+    backwards = abs(1-x[i])
+    CNs.append(findCN(forwards,backwards,y[i],x[i]))
+
+plt.plot(x,CNs)
+plt.axhline(y=1, color='red', linestyle='-')
+plt.axis([-5,5  ,-1,5])
+plt.title("Graph of CN from forwards backwards error formula")
+plt.xlabel("x")
+plt.ylabel("CN")
+plt.show()
+
+
+
+
+x = np.linspace(-1,1,100)
 y = [math.cos(2*math.pi*val) for val in x]
 
 plt.plot(x,y,label = "True")
 
-y_approx = [float('%.3g' % val) for val in x]
+y_approx = [float('%.3g' % 1) for _ in x]
 plt.plot(x,y_approx, label = "approx")
 
 
@@ -27,10 +56,5 @@ plt.legend()
 plt.title("Taylor series approx of cos(2*pi*x)")
 plt.show()
 
-forwards = abs(3.5 - math.cos(2*math.pi*3.5))
-backwards = backwardsError(3.5)
-print(forwards)
-print(backwards)
 
 
-print(findSens(forwards,backwards,3.5,abs(math.cos(2*math.pi*3.5))))
