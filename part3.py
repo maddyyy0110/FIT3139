@@ -20,7 +20,7 @@ def findCN(forwards, backwards,y,x):
 
 
 
-# CN from forwards and backwards error
+#Calculate CN from forwards and backwards error accross our domain
 
 CNs = []
 
@@ -32,6 +32,8 @@ for i in range(len(x)):
     backwards = abs(1-x[i])
     CNs.append(findCN(forwards,backwards,y[i],x[i]))
 
+#plot CN
+
 plt.plot(x,CNs)
 plt.axhline(y=1, color='red', linestyle='-')
 plt.axis([-5,5  ,-1,5])
@@ -41,7 +43,7 @@ plt.ylabel("CN")
 plt.show()
 
 
-
+#Plot our taylor series approximation agains the true value.
 
 x = np.linspace(-1,1,100)
 y = [math.cos(2*math.pi*val) for val in x]
