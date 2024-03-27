@@ -7,6 +7,15 @@ from helper import bisection, relError
 ### Task 1.1 cos(x)
 
 def cosTaylor(point,terms):
+    """Function to create taylor series approx of cos, given POI and no. of terms
+
+    Args:
+        point (float): x value from taylor series
+        terms (int): number of terms in taylor series
+
+    Returns:
+        float: taylor series approx for a given point
+    """
     sum = 0
 
     for i in range(terms):
@@ -14,21 +23,21 @@ def cosTaylor(point,terms):
 
     return sum
 
+
 # Code to create graph for 1.1 cos(x)
 
+x = np.linspace(0,5,100)
+y = [math.cos(val) for val in x]
 
-# x = np.linspace(0,5,100)
-# y = [math.cos(val) for val in x]
+plt.plot(x,y,label = "True")
 
-# plt.plot(x,y,label = "True")
+for terms in [1,5,10]:
+    y_approx = [cosTaylor(val, terms) for val in x]
+    plt.plot(x,y_approx, label = f"{terms} terms")
 
-# for terms in [1,5,10]:
-#     y_approx = [cosTaylor(val, terms) for val in x]
-#     plt.plot(x,y_approx, label = f"{terms} terms")
-
-# plt.legend()
-# plt.title("Taylor series approx of cos(x)")
-# plt.show()
+plt.legend()
+plt.title("Taylor series approx of cos(x)")
+plt.show()
 
 
 ### Task 1.2 cos(x)
@@ -45,6 +54,8 @@ plt.plot(x,y)
 
 # function to represent relative error equation
 # between small angle approximation of cos(x) and its true value
+# note we shift our small angle approx down by 0.01 so we can use root finding methods
+
 function = lambda x: abs((math.cos(x) - (1 - x**2/2))/math.cos(x))*100 - 0.01
 
 root = bisection(function,0.15,0.25,0.001)

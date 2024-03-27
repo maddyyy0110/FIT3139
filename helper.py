@@ -1,23 +1,5 @@
-from functools import cache
-from math import comb as binomial
 import numpy as np
 from scipy.special import bernoulli
-
-# Code sourced The online integer encyclopedia:
-# https://oeis.org/search?q=0%2C1%2C0%2C2%2C0%2C16%2C0%2C272&language=english&go=Search
-
-# this function will generate the integer result from the nth derivative of tan(x) evaluated at 0
-
-@cache
-def ptan(n):
-    # Recursively calls itself
-    return (0 if n % 2 == 0 else -sum(binomial(n, k)*ptan(n-k) if k > 0 else 1 for k in range(0, n+1, 2)))
-
-def A350972(n):
-    # Only interested in positive results
-    t = ptan(n)
-    return -t if t < 0 else t
-# Peter Luschny, Jun 06 2022
 
 
 def bisection(a_function,a,b,tol,max_iter = 1000):
@@ -66,10 +48,10 @@ def relError(actual,expected):
     
 
 def zagNumsGenerator(n):
-    """Function to generate the "tangent zag numbers"
+    """Function to generate the "tangent / zag numbers"
     i.e. 1,2,16,272...
 
-    Note that imprecision is introduced by fractional Bernoulli numbers
+    Note that imprecision is introduced by floating point Bernoulli numbers
 
     Args:
         n (int): number of terms to be generated
