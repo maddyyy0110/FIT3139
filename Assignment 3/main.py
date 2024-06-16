@@ -1,3 +1,5 @@
+# Maddy Prazeus, 31494978
+
 import numpy as np
 from matplotlib import pyplot as plt
 from helper import printProgressBar
@@ -7,6 +9,8 @@ import tqdm
 
 def generate_tsp_instance(number_of_islands, grid_size):
     """Create an array of n randomly placed islands in an m x m grid
+
+    This code was sourced from FIT3139 workshop code named TSP_SA.ipynb
 
     Args:
         number_of_islands (int): number of islands to create
@@ -25,6 +29,8 @@ def generate_tsp_instance(number_of_islands, grid_size):
 
 def plot_instance(instance, grid_size, starting_pos):
     """Plots tsp islands on a grid
+
+    This code was sourced from FIT3139 workshop code named TSP_SA.ipynb
 
     Args:
         instance (Tuple[]): array of islands to plot
@@ -48,6 +54,8 @@ def plot_instance(instance, grid_size, starting_pos):
 
 def plot_tour(instance, grid_size, tour,total_time, current):
     """Plots the path chosen for TSP
+
+    This code was sourced from FIT3139 workshop code named TSP_SA.ipynb
 
     Args:
         instance (Tuple[]): array of tuples representing cities
@@ -98,6 +106,8 @@ def current_impact(ship_vec, current_vec):
 
 def perturb(tour):
     """Given a TSP tour, make a swap between two randomly selected islands
+
+    This code was sourced from FIT3139 workshop code named TSP_SA.ipynb
 
     Args:
         tour (Tuple[]): Array of tuples, where each tuple encodes the x,y pos of an island
@@ -179,6 +189,8 @@ def cost(tour,tsp_instance,ship_speed, current):
 
 def SA_TSP(tsp_instance, per_temp, t0, cooling_factor, ship_speed, current):
     """Use simulated annealing to solve a TSP problem
+
+    This code was inspired by FIT3139 workshop code named TSP_SA.ipynb
 
     Args:
         tsp_instance (Tuple[]): Array of tuples where each tuple corresponds to an island

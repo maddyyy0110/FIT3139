@@ -1,6 +1,16 @@
+# Maddy Prazeus, 31494978
 
 def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
     """
+
+    This code was created by "Greenstick" from stack overflow
+    Account: https://stackoverflow.com/users/2206251/greenstick
+    
+    See the accepted answer in the following post:
+    https://stackoverflow.com/questions/3173320/text-progress-bar-in-terminal-with-block-characters
+
+    Accessed on the 16/06/2024
+
     Call in a loop to create terminal progress bar
     @params:
         iteration   - Required  : current iteration (Int)
