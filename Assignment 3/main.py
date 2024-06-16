@@ -3,66 +3,83 @@ from matplotlib import pyplot as plt
 from helper import printProgressBar
 import psutil
 import multiprocessing
-import timeit
 import tqdm
 
-def generate_tsp_instance(number_of_cities, grid_size):
-    """Create an array of n randomly placed cities in an m x m grid
+def generate_tsp_instance(number_of_islands, grid_size):
+    """Create an array of n randomly placed islands in an m x m grid
 
     Args:
-        number_of_cities (int): number of cities to create
-        grid_size (int): size of grid to place cities on
+        number_of_islands (int): number of islands to create
+        grid_size (int): size of grid to place islands on
 
     Returns:
-        Tuple[]: Array of tuples, where each tuple stores a cities x,y coords
+        Tuple[]: Array of tuples, where each tuple stores a islands x,y coords
     """
     ans = []
-    while len(ans) < number_of_cities:
+    while len(ans) < number_of_islands:
         (x, y) = np.random.randint(0, grid_size, size=2)
         if (x, y) not in ans:
             ans.append((x, y))
     return ans
 
 
-def plot_instance(instance, grid_size):
-    """Plots tsp cities on a grid
+def plot_instance(instance, grid_size, starting_pos):
+    """Plots tsp islands on a grid
 
     Args:
-        instance (Tuple[]): array of cities to plot
+        instance (Tuple[]): array of islands to plot
         grid_size (int): size of grid we are creating
+        starting_pos: used to highlight one node as the starting position
     """
-    plt.close()
-    for i, city in enumerate(instance):
-        plt.plot(city[0], city[1], 'o', color='red')
-        plt.annotate(i, xy=(city[0], city[1]), xytext=(-8, 8),
+    # loop over all 
+    for i, island in enumerate(instance):
+        if i == starting_pos:
+            plt.plot(island[0], island[1], 'ko', label = "Start point")
+        else:
+            plt.plot(island[0], island[1], 'o', color='red')
+        plt.annotate(i, xy=(island[0], island[1]), xytext=(-8, 8),
         textcoords='offset points')
     plt.grid()
-    plt.xlim((-0.5, grid_size+0.5))
-    plt.ylim((-0.5, grid_size+0.5))
+    plt.xlim((-0.5, grid_size+grid_size/10))
+    plt.ylim((-0.5, grid_size+grid_size/10))
+    plt.xlabel("x position (km)")
+    plt.ylabel("y position (km)")
 
 
-def plot_tour(instance, grid_size, tour):
+def plot_tour(instance, grid_size, tour,total_time, current):
     """Plots the path chosen for TSP
 
     Args:
         instance (Tuple[]): array of tuples representing cities
         grid_size (int): size of grid to plot
-        tour (Tuple[]): Array of city tuples, who's order encodes the path taken
+        tour (Tuple[]): Array of island tuples, who's order encodes the path taken
+        total_time(float): Total time taken of the tour
+        current(Tuple): tuple containg angle and magnitude of current
     """
-    plt.close()
-    plot_instance(instance, grid_size)
+    # loop over tour and make a connection between each node
+    plot_instance(instance, grid_size, tour[0])
     for i in range(0, len(tour)-1):
         x = instance[tour[i]][0] 
         y = instance[tour[i]][1] 
         dx = instance[tour[i+1]][0] -x 
         dy = instance[tour[i+1]][1] -y
-        plt.arrow(x, y, dx, dy, color='blue')
-    x = instance[tour[-1]][0] 
-    y = instance[tour[-1]][1] 
-    dx = instance[tour[0]][0] -x 
-    dy = instance[tour[0]][1] -y
-    plt.arrow(x, y, dx, dy, color='blue')
-    plt.show()
+
+        if i == 0:
+            arrow_head_length = np.sqrt(dx**2 + dy**2) / 10
+            plt.arrow(x, y, dx, dy, color='blue', head_length=arrow_head_length, length_includes_head = True,
+                       head_width = arrow_head_length/2, fc='k', ec='k', label = "First move")
+        else:
+            plt.arrow(x, y, dx, dy, color='blue')
+
+    ## Uncomment if u want to ship to return to start position
+    # x = instance[tour[-1]][0] 
+    # y = instance[tour[-1]][1] 
+    # dx = instance[tour[0]][0] -x 
+    # dy = instance[tour[0]][1] -y
+    # plt.arrow(x, y, dx, dy, color='blue')
+    plt
+    plt.title(f"Current Mag: {round(current[0],2)} km/h Current Angle: {round(np.rad2deg(current[1]),2)}°\nTime Taken: {round(total_time,2)} hour(s)")
+    plt.legend()
 
 def current_impact(ship_vec, current_vec):
     """
@@ -77,7 +94,7 @@ def current_impact(ship_vec, current_vec):
         float: resulting magnitude of the ship vector
     """
 
-    return np.linalg.norm(current_vec) * np.dot(ship_vec,current_vec)/(np.linalg.norm(ship_vec) * np.linalg.norm(current_vec))
+    return np.dot(ship_vec,current_vec) / (np.linalg.norm(ship_vec))
 
 def perturb(tour):
     """Given a TSP tour, make a swap between two randomly selected islands
@@ -109,14 +126,22 @@ def travel_time(island1: tuple, island2: tuple, ship_speed: float,current: tuple
     Returns:
         float: speed in knots
     """
-
+    # extract island x and y vals
     Sx1 = island1[0]
     Sy1 = island1[1]
     Sx2 = island2[0]
     Sy2 = island2[1]
 
+    # create our np path vector and then the velocity vector of the ship
     ship_vec = np.array([Sx2 - Sx1, Sy2 - Sy1])
+    distance = np.linalg.norm(ship_vec)
+    ship_vel_vec = ship_vec / distance * ship_speed
 
+    # handling if we want to test TSP base model
+    if current == None:
+        return distance / ship_speed
+
+    # create vector for curent
     Cx1 = Sx1
     Cy1 = Sy1
     Cx2 = Cx1 + current[0] * np.cos(current[1])
@@ -124,32 +149,44 @@ def travel_time(island1: tuple, island2: tuple, ship_speed: float,current: tuple
 
     current_vec = np.array([Cx2 - Cx1, Cy2 - Cy1])
 
-
-    distance = np.linalg.norm(ship_vec)
-
-    ship_speed = ship_speed + current_impact(ship_vec,current_vec)
+    # get ship speed affected by current
+    ship_speed = ship_speed + current_impact(ship_vel_vec,current_vec)
 
     return distance / ship_speed
 
 def cost(tour,tsp_instance,ship_speed, current):
+    """Determine the Cost of a given tour
 
+    Args:
+        tour (list): list of integers representing order of islands visited
+        tsp_instance (Tuple[]): list of tuples, where each element is an islands x,y coords
+        ship_speed (int): velocity of ship
+        current (Tuple): Tuple containing currents direction and magnitude
+
+    Returns:
+        float: time taken of tour
+    """
     total_time = 0
 
+    # loop over each element in tour and add the cost of reaching it
     for i in range(0, len(tour)-1):
         total_time += travel_time(tsp_instance[tour[i]], tsp_instance[tour[i+1]],ship_speed,current)
-    total_time += travel_time(tsp_instance[tour[-1]], tsp_instance[tour[0]],ship_speed,current)
-    
+    ## Uncomment this line if u want ship to return to start position
+    #total_time += travel_time(tsp_instance[tour[-1]], tsp_instance[tour[0]],ship_speed,current)
+ 
     return total_time
     
 
-def SA_TSP(tsp_instance, perturbations_per_annealing_sep, t0, cooling_factor, ship_speed, current):
+def SA_TSP(tsp_instance, per_temp, t0, cooling_factor, ship_speed, current):
     """Use simulated annealing to solve a TSP problem
 
     Args:
         tsp_instance (Tuple[]): Array of tuples where each tuple corresponds to an island
-        perturbations_per_annealing_sep (int): Number of perterbutions to make per iteration
+        per_temp (int): Number of perterbutions to make per iteration
         t0 (int): Initial temperature
         cooling_factor (float): factor used to reduce the temperature
+        ship_speed (int): velocity of ship
+        current (Tuple): Tuple containing currents direction and magnitude
 
     Returns:
         Tuple[], float: Array of tuples encoding solution path and time taken of said path
@@ -159,13 +196,14 @@ def SA_TSP(tsp_instance, perturbations_per_annealing_sep, t0, cooling_factor, sh
     number_of_cities = len(tsp_instance)
     
     # create random initial solution
-    current_solution = np.random.permutation(number_of_cities) 
+    #current_solution = np.random.permutation(number_of_cities) 
+    current_solution = range(number_of_cities)
     t = t0
     counter = 0
     
     # loop until temperature below threshold
     while t > 0.001:
-        for _ in range(perturbations_per_annealing_sep):
+        for _ in range(per_temp):
             counter += 1
             # cost of current solution
             current_time_taken = cost(current_solution,tsp_instance, ship_speed, current)
@@ -247,76 +285,34 @@ def monte_carlo_fast(SA_TSP_inputs: list, n:int):
     Returns:
         list: original tsp instance, list of each solution, its time taken respective current vector
     """
+    # determine amount of logical cores available to use
     cores = len(psutil.Process().cpu_affinity())
     
+    # Initialise all the inputs  for jobs to be done
     items = [0]*n
-
+    currents = []
     for i in range(n):
         #generate current
         current_mag = np.random.uniform(1,SA_TSP_inputs[4]/2)
         current_angle = np.random.uniform(0,2* np.pi)
+        currents.append((current_mag,current_angle))
 
         #add all inputs to items 
         items[i] = [SA_TSP_inputs[0],SA_TSP_inputs[1],
                     SA_TSP_inputs[2],SA_TSP_inputs[3],
                     SA_TSP_inputs[4],(current_mag,current_angle)]
 
-
+    # create our worker pool
     pool = multiprocessing.Pool(cores)
 
-
+    # use imap to out of order assign work
+    # tqdm is used to create loading bar
     results = []
     for result in tqdm.tqdm(pool.imap(func=starFoo, iterable=items), total=n):
         results.append(result)
 
-
-    print(results)
-
     pool.close()
     pool.join()
 
-    return results
-    
-if __name__ == '__main__':
-
-    number_of_cities = 20
-    grid_size = 100
-
-    np.random.seed(42)
-
-    tsp_instance = generate_tsp_instance(number_of_cities, grid_size)
-
-    # plot_instance(tsp_instance, grid_size)
-
-
-
-    ship_vec, current_vec = np.array([1,1]), np.array([-1,1])
-
-    # island1 = (0,0)
-    # island2 = (10,10)
-    ship_speed = 60
-    #current = (15, 5*np.pi/4)
-    current = (1, 5*np.pi/4)
-
-    # print(travel_time(island1,island2,ship_speed,current))
-
-    # solution_tour, total_time = SA_TSP(tsp_instance, 10, 100, 0.90,ship_speed,current)
-
-    # plot_tour(tsp_instance, grid_size, solution_tour)
-
-    SA_TSP_input = [tsp_instance, 20, 100, 0.90,ship_speed]
-
-    start = timeit.default_timer()
-    print("The start time is :", start)
-    print(monte_carlo(SA_TSP_input,50))
-
-    #monte_carlo_fast(SA_TSP_input,50)
-    print("The difference of time is :", 
-                timeit.default_timer() - start)
-
-
-
-    # print individual solution
-    # tsp_instance = [(15, 69), (52, 37), (66, 11), (56, 33), (26, 73), (87, 32), (32, 89), (61, 18), (9, 11), (43, 30), (21, 22), (78, 71), (50, 68), (73, 83), (58, 63), (26, 40), (79, 52), (14, 88), (86, 24), (40, 30)]
-    # solution_tour = [ 4, 15, 12, 14, 13, 11, 16,  7,  2,  8, 10,  1,  5, 18,  3,  9, 19, 0, 17,  6]
-    # plot_tour(tsp_instance, grid_size, solution_tour)
+    return results, currents
+ 
